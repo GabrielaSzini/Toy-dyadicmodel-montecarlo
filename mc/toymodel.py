@@ -69,6 +69,13 @@ def simulation():
             lambda c: c[0] == i and c[1] == j,
             combinations(range(N), 4)
         )
+        # New idea to be implemented later
+        #filterlist = [i,j]
+        #list1 = range(N)
+        #filtered=[item for item in list1 if item not in filterlist]
+        #comb = combinations(filtered,2)
+        #for c in enumerate(comb):
+        #    print(np.concatenate((np.array(filterlist),np.array(list(perm))),axis=None)), for perm in permutations(c)
     
         s_ij = np.zeros(n_combinations)  # vector to store those scores
     
