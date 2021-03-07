@@ -54,8 +54,13 @@ def simulation():
     # To get the \Delta_2 value we need the average of \bar{s}_ij \bar{s}_ij'
     
     verbose and print("Computing Graham estimator...")
+    
+    s_ij_bar = np.zeros(n_dyads)
 
-    def foo(dyad):
+    
+    for l, dyad in enumerate(permutations(range(N), 2)):
+    
+        verbose and print(f"Dyad {l+1} / {int(n_dyads/2)}", end="\r")
     
         i, j = dyad
     
@@ -75,12 +80,7 @@ def simulation():
             ])
         
         bar = np.mean(s_ij)
-
-        return bar
-    
-
-    with mp.Pool(6) as p:
-        s_ij_bar = p.map(foo, permutations(range(N), 2))
+        s_ij_bar[l] = bar
     
     # Delta_2 is simply the average of \bar{s}_ij \bar{s}_ij' over all dyads
     
@@ -90,20 +90,19 @@ def simulation():
     
     return u_stat, delta_2
 
+def run(_): return simulation()
+
 
 if __name__ == "__main__":
     
     start = time.time()
-
-    results = []
     
-    for k in range(sim):
-        print(f"Simulation: {k+1} / {sim}")
-        u, d = simulation()
-        results.append((u, d))
+    with mp.Pool(4) as p:
+    
+        result = p.map(run, range(sim))
 
     end = time.time()
     
-    print(results)
+    print(result)
     
     print(f"Simulation with N={N} and T={sim} took {end-start:.2f} seconds")
