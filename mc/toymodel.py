@@ -66,7 +66,8 @@ def simulation():
     
         # for a given dyad, we need to average the scores of the combinations that contain i and j, so here we take the combinations
         comb = filter(
-            lambda c: c[0] == i and c[1] == j,
+            #lambda c: c[0] == i and c[1] == j,
+            lambda c: (i in c) and (j in c),
             combinations(range(N), 4)
         )
         # New idea to be implemented later
