@@ -11,7 +11,7 @@ verbose = False
 
 #------------------------- Initialization ------------------------------------#
 
-N = 30 # number of nodes in the network
+N = 10 # number of nodes in the network
 n_dyads = N*(N-1)  # number of directed dyads
 sim = 10 # number of simulations
 
@@ -56,7 +56,6 @@ def simulation():
     
     
     n_dyads = N * (N - 1)
-    n_pairs = n_dyads // 2
     n_combinations = (N-2)*(N-3) // 2
     
     #------------------- Data Generating Process -----------------------------#
@@ -87,10 +86,10 @@ def simulation():
     
     verbose and print("Computing Graham estimator...")
     
-    s_ij_bar = np.zeros((n_pairs, 2))
+    s_ij_bar = np.zeros(n_dyads)
 
     
-    for l, dyad in enumerate(combinations(range(N), 2)):
+    for l, dyad in enumerate(permutations(range(N), 2)):
     
         verbose and print(f"Dyad {l+1} / {int(n_dyads/2)}", end="\r")
     
@@ -98,7 +97,7 @@ def simulation():
     
         # for a given dyad, we need to average the scores of the combinations that contain i and j, so here we take the combinations
         comb = filter(
-            lambda c: (i in c) and (j in c),
+            lambda c: c[0] == i and c[1] == j,
             combinations(range(N), 4)
         )
     
@@ -112,10 +111,10 @@ def simulation():
             ])
         
         bar = np.mean(s_ij)
-        s_ij_bar[l, :] = [bar, bar]
+        s_ij_bar[l] = bar
     
     # Delta_2 is simply the average of \bar{s}_ij \bar{s}_ij' over all dyads
-    s_ij_bar = s_ij_bar.reshape(-1)
+    
     delta_2 = np.mean(np.square(s_ij_bar))
     
     verbose and print("\n...done!")
