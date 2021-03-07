@@ -11,7 +11,7 @@ verbose = False
 
 #------------------------- Initialization ------------------------------------#
 
-N = 10 # number of nodes in the network
+N = 30 # number of nodes in the network
 n_dyads = N*(N-1)  # number of directed dyads
 sim = 10 # number of simulations
 
