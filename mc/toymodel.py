@@ -13,7 +13,7 @@ verbose = False
 
 #------------------------- Initialization ------------------------------------#
 
-N = 50 # number of nodes in the network
+N = 40 # number of nodes in the network
 n_dyads = N*(N-1)  # number of directed dyads
 sim = 10 # number of simulations
 
@@ -60,23 +60,15 @@ def simulation():
     
     for l, dyad in enumerate(permutations(range(N), 2)):
     
-        verbose and print(f"Dyad {l+1} / {int(n_dyads/2)}", end="\r")
+        verbose and print(f"Dyad {l+1} / {int(n_dyads)}", end="\r")
     
         i, j = dyad
-    
+
         # for a given dyad, we need to average the scores of the combinations that contain i and j, so here we take the combinations
-        comb = filter(
-            #lambda c: c[0] == i and c[1] == j,
-            lambda c: (i in c) and (j in c),
-            combinations(range(N), 4)
+        comb = combinations(
+            (n for n in range(N) if (n != i) and (n != j)),
+            2
         )
-        # New idea to be implemented later
-        #filterlist = [i,j]
-        #list1 = range(N)
-        #filtered=[item for item in list1 if item not in filterlist]
-        #comb = combinations(filtered,2)
-        #for c in enumerate(comb):
-        #    print(np.concatenate((np.array(filterlist),np.array(list(perm))),axis=None)), for perm in permutations(c)
     
         s_ij = np.zeros(n_combinations)  # vector to store those scores
     
@@ -84,7 +76,7 @@ def simulation():
         for m, c in enumerate(comb):
     
             s_ij[m] = np.mean([
-                s(x_ij, u_ij, perm) for perm in permutations(c)
+                s(x_ij, u_ij, perm) for perm in permutations((i, j, *c))
             ])
         
         bar = np.mean(s_ij)
@@ -105,7 +97,7 @@ if __name__ == "__main__":
     
     start = time.time()
     
-    with mp.Pool(4) as p:
+    with mp.Pool(8) as p:
     
         result = p.map(run, range(sim))
 
