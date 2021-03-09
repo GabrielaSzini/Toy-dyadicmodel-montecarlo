@@ -32,3 +32,21 @@ def s(U, X, tetrad):
     """
 
     return double_diff(X, *tetrad) * double_diff(U, *tetrad)
+
+def s_ij_comb(i, j, k, l, U, X):
+    """
+    Computes the summand in s_ij_bar
+    """
+
+    sij_comb = 1/24 * (
+        (double_diff(X, i, j, k, l)) * U[i,j] +
+        (double_diff(X, i, k, j, l)) * (- U[i,j]) +
+        (double_diff(X, k, j, l, i)) * (- U[i,j]) +
+        (double_diff(X, l, k, j, i)) * U[i,j] +
+        (double_diff(X, k, l, j, i)) * U[i,j] +
+        (double_diff(X, l, j, k, i)) * (- U[i,j]) +
+        (double_diff(X, i, j, l, k)) * U[i,j] +
+        (double_diff(X, i, l, j, k)) * (- U[i,j]) 
+    )
+
+    return sij_comb

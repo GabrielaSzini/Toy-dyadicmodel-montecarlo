@@ -6,18 +6,16 @@ import multiprocessing as mp
 
 from itertools import permutations, combinations
 
-from utils.stats import perm_np, s, diff_tetrad, double_diff
+from utils.stats import perm_np, s, diff_tetrad, double_diff, s_ij_comb
 
 np.random.seed(110792)
-verbose = False
+verbose = True
 
 #------------------------- Initialization ------------------------------------#
 
-N = 40 # number of nodes in the network
+N = 10 # number of nodes in the network
 n_dyads = N*(N-1)  # number of directed dyads
 sim = 10 # number of simulations
-
-
 
 #---------------------- Loop for simulations ---------------------------------#
 
@@ -75,9 +73,7 @@ def simulation():
         # for a given combination, the score consists of an average of its permutations
         for m, c in enumerate(comb):
     
-            s_ij[m] = np.mean([
-                s(x_ij, u_ij, perm) for perm in permutations((i, j, *c))
-            ])
+            s_ij[m] = s_ij_comb(i, j, c[0], c[1], u_ij, x_ij)
         
         bar = np.mean(s_ij)
         s_ij_bar[l] = bar
@@ -105,7 +101,7 @@ if __name__ == "__main__":
     
     print(result)
 
-    with open('results_1.txt', 'w') as fp:
+    with open('results_2.txt', 'w') as fp:
         fp.write('\n'.join('%s %s' % x for x in result))
     
     print(f"Simulation with N={N} and T={sim} took {end-start:.2f} seconds")
