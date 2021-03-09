@@ -13,9 +13,9 @@ verbose = True
 
 #------------------------- Initialization ------------------------------------#
 
-N = 10 # number of nodes in the network
+N = 40 # number of nodes in the network
 n_dyads = N*(N-1)  # number of directed dyads
-sim = 10 # number of simulations
+sim = 500 # number of simulations
 
 #---------------------- Loop for simulations ---------------------------------#
 
@@ -101,7 +101,7 @@ if __name__ == "__main__":
     
     print(result)
 
-    with open('results_2.txt', 'w') as fp:
+    with open('results_N40_secondsim.txt', 'w') as fp:
         fp.write('\n'.join('%s %s' % x for x in result))
     
     print(f"Simulation with N={N} and T={sim} took {end-start:.2f} seconds")
