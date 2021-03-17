@@ -71,7 +71,7 @@ def combination_fix_ij(i,j,N):
     )
     return np.array(list(comb))
 
-def s_ij(comb, i, j, n_combinations):      #can use @jit if I manage to use it for double_diff and s_ij_comb
+def s_ij_comb(comb, i, j, n_combinations, u_ij, x_ij):      #can use @jit if I manage to use it for double_diff and s_ij_comb
     """
     Generates the scores for a fixed i, j, and all possible combinations of k, l 
     """

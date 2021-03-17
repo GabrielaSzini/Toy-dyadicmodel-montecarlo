@@ -6,7 +6,7 @@ import multiprocessing as mp
 
 from numba import jit
 from itertools import permutations, combinations
-from utils.stats import perm_np, s, diff_tetrad, double_diff, s_ij_comb, gen_dgp
+from utils.stats import perm_np, s, diff_tetrad, double_diff, s_ij_comb, gen_dgp, combination_fix_ij, s_ij_comb
 
 np.random.seed(110792)
 verbose = True
@@ -51,9 +51,9 @@ def simulation():
 
         # for a given dyad, we need to average the scores of the combinations that contain i and j, so here we take the combinations
         comb = combination_fix_ij(i,j,N)
-            
+
         # for a given combination, the score consists of an average of its permutations
-        s_ij = s_ij(comb, i, j, n_combinations)
+        s_ij = s_ij_comb(comb, i, j, n_combinations, u_ij, x_ij)
 
         bar = np.mean(s_ij)
         s_ij_bar[l] = bar
