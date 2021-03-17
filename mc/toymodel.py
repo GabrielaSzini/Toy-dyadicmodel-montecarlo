@@ -4,9 +4,9 @@ import time
 import numpy as np
 import multiprocessing as mp
 
+from numba import jit
 from itertools import permutations, combinations
-
-from utils.stats import perm_np, s, diff_tetrad, double_diff, s_ij_comb
+from utils.stats import perm_np, s, diff_tetrad, double_diff, s_ij_comb, gen_dgp
 
 np.random.seed(110792)
 verbose = True
@@ -14,31 +14,18 @@ verbose = True
 #------------------------- Initialization ------------------------------------#
 
 N = 40 # number of nodes in the network
-n_dyads = N*(N-1)  # number of directed dyads
-sim = 500 # number of simulations
+sim = 10 # number of simulations
 
 #---------------------- Loop for simulations ---------------------------------#
 
 def simulation():
-    
-    
-    n_dyads = N * (N - 1)
-    n_combinations = (N-2)*(N-3) // 2
-    
-    #------------------- Data Generating Process -----------------------------#
-    verbose and print("Setting up DGP...")
-    
-    u_ij = np.random.normal(0, 1, (N, N))  # drawing the error terms
-    np.fill_diagonal(u_ij, 0)
-    
-    # drawing the FE likewise Jochmans (2016)
-    a_i = np.random.beta(2, 2, size=(N, 1)) - 1/2
-    x_ij = - np.abs(a_i - a_i.T)
-    
-    
-    #------------------- Obtaining U-statistic -------------------------------#
-    tetrads =  perm_np(N, 4)
-    
+
+    #-------------------- Data Generating Process-----------------------------#
+    n_dyads, n_combinations, x_ij, u_ij = gen_dgp(N)
+        
+    #-------------------- Obtaining U-statistic ------------------------------#
+    tetrads =  perm_np(N, 4)  
+
     verbose and print("Setting up the U-statistic...")
     
     X = diff_tetrad(x_ij, tetrads)
@@ -101,7 +88,7 @@ if __name__ == "__main__":
     
     print(result)
 
-    with open('results_N40_secondsim.txt', 'w') as fp:
+    with open('results_N40_secondsim_T10.txt', 'w') as fp:
         fp.write('\n'.join('%s %s' % x for x in result))
     
     print(f"Simulation with N={N} and T={sim} took {end-start:.2f} seconds")
