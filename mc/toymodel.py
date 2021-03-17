@@ -50,18 +50,11 @@ def simulation():
         i, j = dyad
 
         # for a given dyad, we need to average the scores of the combinations that contain i and j, so here we take the combinations
-        comb = combinations(
-            (n for n in range(N) if (n != i) and (n != j)),
-            2
-        )
-    
-        s_ij = np.zeros(n_combinations)  # vector to store those scores
-    
+        comb = combination_fix_ij(i,j,N)
+            
         # for a given combination, the score consists of an average of its permutations
-        for m, c in enumerate(comb):
-    
-            s_ij[m] = s_ij_comb(i, j, c[0], c[1], u_ij, x_ij)
-        
+        s_ij = s_ij(comb, i, j, n_combinations)
+
         bar = np.mean(s_ij)
         s_ij_bar[l] = bar
     

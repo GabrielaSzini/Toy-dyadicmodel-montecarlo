@@ -1,5 +1,5 @@
 import numpy as np
-
+import numba as numba
 from numba import jit
 from itertools import permutations, combinations
 
@@ -19,7 +19,6 @@ def diff_tetrad(A: np.array, t: np.array) -> np.array:
     second = A[t[:, 3], t[:, 1]] - A[t[:, 3], t[:, 2]]
     return first - second
 
-@jit(nopython=True)
 def double_diff(mat, i, j, k, l):
     return (mat[i, j] - mat[i, k]) - (mat[l, j] - mat[l, k])
 
@@ -30,7 +29,6 @@ def s(U, X, tetrad):
     """
     return double_diff(X, *tetrad) * double_diff(U, *tetrad)
 
-@jit(nopython=True)
 def s_ij_comb(i, j, k, l, U, X):
     """
     Computes the summand in s_ij_bar
@@ -64,4 +62,22 @@ def gen_dgp(N):
     x_ij = - np.abs(a_i - a_i.T)
     return n_dyads, n_combinations, x_ij, u_ij
 
+def combination_fix_ij(i,j,N):
+    """
+    Generates the combinations of 2 indices given i, and j fixed
+    """
+    comb = combinations((n for n in range(N) if (n != i) and (n != j)),
+        2
+    )
+    return np.array(list(comb))
 
+def s_ij(comb, i, j, n_combinations):      #can use @jit if I manage to use it for double_diff and s_ij_comb
+    """
+    Generates the scores for a fixed i, j, and all possible combinations of k, l 
+    """
+    s_ij = np.zeros(n_combinations) 
+    for c in np.arange(0,n_combinations):
+        s_ij[c] = s_ij_comb(i, j, comb[c][0], comb[c][1], u_ij, x_ij)
+    return s_ij
+        
+    
