@@ -1,22 +1,20 @@
 using Distributed
 using DelimitedFiles
-addprocs(4)
+
+addprocs(8)
 
 @everywhere begin
     using Pkg; Pkg.activate(".")
-    using ProgressMeter
-    
+
     using Random, Distributions
     using Combinatorics
     using LinearAlgebra
 
     include("utils/stats.jl")
     include("utils/dgp.jl")
-
 end
 
-
-@everywhere function simulation(N, i)
+@everywhere function simulation(N)
 
     E = Set(1:N)
 
@@ -24,10 +22,9 @@ end
 
     tetrads = permutations(1:N, 4)
 
-    ΔX, ΔU = Δfe(X), Δfe(U)
-    Ustat = mean(@. ΔX(tetrads) * ΔU(tetrads))
-    
-    # Variance
+    Ustat = computeU(X, U, tetrads)
+        
+        # Variance
     Ndyads = N * (N - 1)
     s̄ = zeros(Ndyads)
 
@@ -35,30 +32,28 @@ end
 
         i, j = dyad
 
-        # Combinations of not i, j dyads
+            # Combinations of not i, j dyads
         notij = collect(setdiff(E, Set(dyad)))
         othercomb = combinations(notij, 2)
 
         s̄[l] = mean(scombs(X, U, i, j, k, l) for (k, l) in othercomb)
-        
+            
     end
 
     Δ₂ = mean(s̄.^2)
-
-    print("Done with $i\n")
 
     return Δ₂, Ustat 
 
 end
 
-N = 10
-sims = 10
 
-function parallelrun()
-    tomap = [(N, i) for _ in 1:sims]
-    return pmap(simulation, tomap)
-end
+N = 100
+sims = 1_000
 
-@time result = parallelrun()
+print("Starting parallel simulation...\n")
+@time results = pmap(simulation, repeat([N], sims))
 
-writedlm("results/out.csv", result, ',')
+print("Not parallel simulation...\n")
+@time results = map(simulation, repeat([N], sims))
+
+writedlm("results/out.csv", results, ',')
