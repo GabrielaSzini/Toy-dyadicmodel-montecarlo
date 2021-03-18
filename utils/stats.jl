@@ -1,16 +1,20 @@
-factor = 0.041666666666666664
-
+"""
+Function that takes double differencing
+"""
 function Δ(M, i, j, k, l)
     @inbounds (M[i, j] - M[i, k]) - (M[l, j] - M[l, k])
 end
 
+"""
+Function that computes the score
+"""
 s(U, X, i, j, k, l) = s(U, X, (i, j, k, l))
 function s(U, X, tetrad)
     return Δ(U, tetrad...) * Δ(X, tetrad...)
 end
 
 """
-Computes the summand
+Computes the summand for the first estimator of Δ₂
 """
 scombs(X, U, tetrad) = scombs(X, U, tetrad...)
 function scombs(X, U, i, j, k, l)
@@ -29,26 +33,32 @@ function scombs(X, U, i, j, k, l)
 end
 
 """
-Computes the summand for the second estimator
+Computes the summand for the second estimator of Δ₂
 """
 scombsinefficient(X, U, tetrad) = scombsinefficient(X, U, tetrad...)
 function scombsinefficient(X, U, i, j, k, l)
-    summands = 0.
+    summand = 0.
     @inbounds for a in (i,j,k,l), b in (i,j,k,l)
         (a - b) == 0 && continue
         for c in (i,j,k,l), d in (i,j,k,l)
             (c - a) * (c - b) == 0 && continue
             (d - c) * (d - b) * (d - a) == 0 && continue
-            summands += s(U, X, a, b, c, d) 
+            summand += s(U, X, a, b, c, d) 
         end
     end
 
-    return summands/24
+    return summand/24
 
 end
 
+"""
+Function that takes double differencing (same as previous one?)
+"""
 Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 
+"""
+Function that computes the U-statistic
+"""
 @inline function computeU(
     X::Matrix, U::Matrix, N::Int64)
 

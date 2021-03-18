@@ -24,11 +24,12 @@ end
 
     Ustat = computeU(X, U, N)
         
-    # Variance
+    # Obtaining Δ₂
     Ndyads = N * (N - 1)
     s̄₁ = 0.
     s̄₂ = 0.
 
+    # Fixing a dyad i,j
     @inbounds for i in 1:N, j in 1:N
         (i - j) == 0 && continue
 
@@ -36,6 +37,7 @@ end
         sdyad₂ = 0.
         Ncombs = binomial(N - 2, 2)
 
+        # Obtaining the conditional expectations over this dyad
         for l in 1:N
             (l - i) * (l - j) == 0 && continue
 
@@ -51,6 +53,7 @@ end
         s̄₂ += (sdyad₂ / Ncombs)^2
     end
 
+    # Taking the average over dyads for both estimators
     Δ₂₁ = s̄₁ / Ndyads
     Δ₂₂ = s̄₂ / Ndyads 
 
