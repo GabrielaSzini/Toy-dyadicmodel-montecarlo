@@ -15,7 +15,7 @@ addprocs(8)
 end
 
 
-@everywhere function simulation(N, i)
+@everywhere function simulation(N)
 
     E = Set(1:N)
 
@@ -49,8 +49,6 @@ end
     Δ₂₁ = mean(s̄₁.^2)
     Δ₂₂ = mean(s̄₂.^2)
 
-    print("Done with $i\n")
-
     return  Δ₂₁, Δ₂₂, Ustat 
 
 end
@@ -59,7 +57,7 @@ N = 10
 sims = 10
 
 function parallelrun()
-    tomap = [(N, i) for _ in 1:sims]
+    tomap = repeat([N], sims)
     return pmap(simulation, tomap)
 end
 
