@@ -1,8 +1,5 @@
-using Distributed
 using DelimitedFiles
-using Base.Iterators
-
-addprocs(4)
+using Base.Threads
 
 using Random, Distributions
 using Combinatorics
@@ -18,39 +15,45 @@ function simulation(N)
 
     X, U = datageneration(N)
 
-    tetrads = permutations(1:N, 4)
-
-    @time Ustat = computeU(X, U, tetrads)
-    @time Ustat = computeU(X, U, tetrads, 10_000)
+    Ustat = computeU(X, U, N)
         
     # Variance
     Ndyads = N * (N - 1)
-    s̄ = zeros(Ndyads)
+    s̄ = 0.
 
-    for (l, dyad) in enumerate(permutations(1:N, 2))
+    @inbounds for i in 1:N, j in 1:N
+        (i - j) == 0 && continue
 
-        i, j = dyad
+        sdyad = 0.
+        Ncombs = binomial(N - 2, 2)
 
-        # Combinations of not i, j dyads
-        notij = collect(setdiff(E, Set(dyad)))
-        othercomb = combinations(notij, 2)
+        for l in 1:N
+            (l - i) * (l - j) == 0 && continue
 
-        s̄[l] = mean(scombs(X, U, i, j, k, l) for (k, l) in othercomb)
-            
+            for k in l:N
+                (k - i) * (k - j) == 0 && continue
+
+                sdyad += scombs(X, U, i, j, k, l)
+            end
+        end
+
+        s̄ = (sdyad / Ncombs)^2
     end
 
-    Δ₂ = mean(s̄.^2)
+    Δ₂ = s̄ / Ndyads
 
     return Δ₂, Ustat 
 
 end
 
-if false
-    N = 30
-    sims = 1_000
+N = 100
+sims = 1_000
 
-    print("Starting parallel simulation...\n")
-    @time results = pmap(simulation, repeat([N], sims))
+results = zeros(sims, 2)
 
-    writedlm("results/out.csv", results, ',')
+@time for i in 1:sims
+    print("$i / $sims\r")
+    results[i, :] .= simulation(N)
 end
+
+writedlm("results/out.csv", results, ',')
