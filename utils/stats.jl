@@ -37,3 +37,16 @@ function Δfe(M::Matrix, i, j, k, l)
 
     return first - second
 end
+
+function computeU(X, U, tetrads)
+    
+    u = 0.
+    Nσ = length(tetrads)
+
+    for t in tetrads
+        u += Δfe(X, t...) * Δfe(U, t...)
+    end
+
+    return u / Nσ
+
+end
