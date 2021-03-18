@@ -28,6 +28,25 @@ function scombs(X, U, i, j, k, l)
     return summand / 24
 end
 
+"""
+Computes the summand for the second estimator
+"""
+scombsinefficient(X, U, tetrad) = scombsinefficient(X, U, tetrad...)
+function scombsinefficient(X, U, i, j, k, l)
+    summands = 0.
+    @inbounds for a in (i,j,k,l), b in (i,j,k,l)
+        (a - b) == 0 && continue
+        for c in (i,j,k,l), d in (i,j,k,l)
+            (c - a) * (c - b) == 0 && continue
+            (d - c) * (d - b) * (d - a) == 0 && continue
+            summands += s(U, X, a, b, c, d) 
+        end
+    end
+
+    return summands/24
+
+end
+
 Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 
 @inline function computeU(
