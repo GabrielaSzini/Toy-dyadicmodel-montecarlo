@@ -1,20 +1,18 @@
 using Distributed
 using DelimitedFiles
+using Base.Iterators
 
-addprocs(8)
+addprocs(4)
 
-@everywhere begin
-    using Pkg; Pkg.activate(".")
+using Random, Distributions
+using Combinatorics
+using LinearAlgebra
 
-    using Random, Distributions
-    using Combinatorics
-    using LinearAlgebra
+include("utils/stats.jl")
+include("utils/dgp.jl")
 
-    include("utils/stats.jl")
-    include("utils/dgp.jl")
-end
 
-@everywhere function simulation(N)
+function simulation(N)
 
     E = Set(1:N)
 
@@ -22,9 +20,10 @@ end
 
     tetrads = permutations(1:N, 4)
 
-    Ustat = computeU(X, U, tetrads)
+    @time Ustat = computeU(X, U, tetrads)
+    @time Ustat = computeU(X, U, tetrads, 10_000)
         
-        # Variance
+    # Variance
     Ndyads = N * (N - 1)
     s̄ = zeros(Ndyads)
 
@@ -32,7 +31,7 @@ end
 
         i, j = dyad
 
-            # Combinations of not i, j dyads
+        # Combinations of not i, j dyads
         notij = collect(setdiff(E, Set(dyad)))
         othercomb = combinations(notij, 2)
 
@@ -46,14 +45,12 @@ end
 
 end
 
+if false
+    N = 30
+    sims = 1_000
 
-N = 100
-sims = 1_000
+    print("Starting parallel simulation...\n")
+    @time results = pmap(simulation, repeat([N], sims))
 
-print("Starting parallel simulation...\n")
-@time results = pmap(simulation, repeat([N], sims))
-
-print("Not parallel simulation...\n")
-@time results = map(simulation, repeat([N], sims))
-
-writedlm("results/out.csv", results, ',')
+    writedlm("results/out.csv", results, ',')
+end

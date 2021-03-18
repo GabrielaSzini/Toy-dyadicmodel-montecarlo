@@ -5,14 +5,14 @@ function Δ(M, i, j, k, l)
 end
 
 s(U, X, i, j, k, l) = s(U, X, (i, j, k, l))
-function s(U, X, tetrad::Tuple{Int64,4})
+function s(U, X, tetrad)
     return Δ(U, tetrad...) * Δ(X, tetrad...)
 end
 
 """
 Computes the summand
 """
-scombs(X, U, tetrad) = comb(X, U, tetrad...)
+scombs(X, U, tetrad) = scombs(X, U, tetrad...)
 function scombs(X, U, i, j, k, l)
     return factor * (
         Δ(X, i, j, k, l) * U[i,j] +
@@ -26,23 +26,27 @@ function scombs(X, U, i, j, k, l)
     )
 end
 
-"""
-Differencing out FE of tetrad of A, using tetrads t
-"""
-Δfe(M::Matrix) = t -> Δfe(M, t)
-Δfe(M::Matrix, t) = Δfe(M::Matrix, t...)
-function Δfe(M::Matrix, i, j, k, l)
-    first = M[i, j] - M[i, k]
-    second = M[l, j] - M[l, k]
+@everywhere Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 
-    return first - second
+@inline function computeU(X, U, tetrads, peel)
+
+    Nσ = length(tetrads)
+    u = 0.
+    for part in partition(tetrads, peel)
+        
+        u += @sync @distributed (+) for t in collect(part)
+            Δfe(X, t...) * Δfe(U, t...)
+        end
+    end
+
+    return u / Nσ
+
 end
 
-function computeU(X, U, tetrads)
-    
-    u = 0.
-    Nσ = length(tetrads)
+@inline function computeU(X, U, tetrads)
 
+    Nσ = length(tetrads)
+    u = 0.
     for t in tetrads
         u += Δfe(X, t...) * Δfe(U, t...)
     end
