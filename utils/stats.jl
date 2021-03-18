@@ -30,8 +30,7 @@ end
 
 Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 
-@inline function computeU(
-    X::Matrix, U::Matrix, N::Int64)
+@inline function computeU(X::Matrix, U::Matrix, N::Int64)
 
     Nσ = factorial(N, N - 4)
 
