@@ -1,8 +1,11 @@
 using Distributed
-addprocs(4; exeflags="--project")
+using DelimitedFiles
+addprocs(4)
 
 @everywhere begin
-
+    using Pkg; Pkg.activate(".")
+    using ProgressMeter
+    
     using Random, Distributions
     using Combinatorics
     using LinearAlgebra
@@ -13,7 +16,7 @@ addprocs(4; exeflags="--project")
 end
 
 
-@everywhere function simulation(N)
+@everywhere function simulation(N, i)
 
     E = Set(1:N)
 
@@ -42,16 +45,20 @@ end
 
     Δ₂ = mean(s̄.^2)
 
+    print("Done with $i\n")
+
     return Δ₂, Ustat 
 
 end
 
-N = 40
+N = 10
 sims = 10
 
 function parallelrun()
-    tomap = [N for _ in 1:sims]
+    tomap = [(N, i) for _ in 1:sims]
     return pmap(simulation, tomap)
 end
 
-@time result = parallelrun() 
+@time result = parallelrun()
+
+writedlm("results/out.csv", result, ',')
