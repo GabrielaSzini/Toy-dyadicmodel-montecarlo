@@ -5,14 +5,14 @@ function Δ(M, i, j, k, l)
 end
 
 s(U, X, i, j, k, l) = s(U, X, (i, j, k, l))
-function s(U, X, tetrad::Tuple{Int64,4})
+function s(U, X, tetrad)
     return Δ(U, tetrad...) * Δ(X, tetrad...)
 end
 
 """
-Computes the summand
+Computes the summand for first estimator
 """
-scombs(X, U, tetrad) = comb(X, U, tetrad...)
+scombs(X, U, tetrad) = scombs(X, U, tetrad...)
 function scombs(X, U, i, j, k, l)
     return factor * (
         Δ(X, i, j, k, l) * U[i,j] +
@@ -23,6 +23,15 @@ function scombs(X, U, i, j, k, l)
         Δ(X, l, j, k, i) * (- U[i,j]) +
         Δ(X, i, j, l, k) * U[i,j] +
         Δ(X, i, l, j, k) * (- U[i,j]) 
+    )
+end
+
+"""
+Computes the summand for the second estimator
+"""
+scombsinefficient(X, U, tetrad) = scombsinefficient(X, U, tetrad...)
+function scombsinefficient(X, U, i, j, k, l)
+    return mean(s(U, X, perm...) for perm in permutations((i,j,k,l),4)
     )
 end
 

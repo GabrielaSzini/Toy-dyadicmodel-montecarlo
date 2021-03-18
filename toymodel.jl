@@ -1,10 +1,9 @@
 using Distributed
 using DelimitedFiles
-addprocs(4)
+addprocs(8)
 
 @everywhere begin
     using Pkg; Pkg.activate(".")
-    using ProgressMeter
     
     using Random, Distributions
     using Combinatorics
@@ -29,7 +28,8 @@ end
     
     # Variance
     Ndyads = N * (N - 1)
-    s̄ = zeros(Ndyads)
+    s̄₁ = zeros(Ndyads)
+    s̄₂ = zeros(Ndyads)
 
     for (l, dyad) in enumerate(permutations(1:N, 2))
 
@@ -39,15 +39,19 @@ end
         notij = collect(setdiff(E, Set(dyad)))
         othercomb = combinations(notij, 2)
 
-        s̄[l] = mean(scombs(X, U, i, j, k, l) for (k, l) in othercomb)
-        
+        """
+        Here we can propose two estimators for the expectation of s_ij conditional on a dyad i,j
+        """     
+        s̄₁[l] = mean(scombs(X, U, i, j, k, l) for (k, l) in othercomb)
+        s̄₂[l] = mean(scombsinefficient(X, U, i, j, k, l) for (k, l) in othercomb)
     end
 
-    Δ₂ = mean(s̄.^2)
+    Δ₂₁ = mean(s̄₁.^2)
+    Δ₂₂ = mean(s̄₂.^2)
 
     print("Done with $i\n")
 
-    return Δ₂, Ustat 
+    return  Δ₂₁, Δ₂₂, Ustat 
 
 end
 
