@@ -26,29 +26,24 @@ function scombs(X, U, i, j, k, l)
     )
 end
 
-@everywhere Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
+Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 
-@inline function computeU(X, U, tetrads, peel)
+@inline function computeU(
+    X::Matrix, U::Matrix, N::Int64)
 
-    Nσ = length(tetrads)
+    Nσ = factorial(N, N - 4)
+
     u = 0.
-    for part in partition(tetrads, peel)
-        
-        u += @sync @distributed (+) for t in collect(part)
-            Δfe(X, t...) * Δfe(U, t...)
+
+    f(t) = Δfe(X, t...) * Δfe(U, t...)
+
+    @inbounds for i in 1:N, j in 1:N
+        (i - j) == 0 && continue
+        for k in 1:N, l in 1:N
+            (k - i) * (k - j) == 0 && continue
+            (l - k) * (l - j) * (l - i) == 0 && continue
+            u += f((i, j, k, l))
         end
-    end
-
-    return u / Nσ
-
-end
-
-@inline function computeU(X, U, tetrads)
-
-    Nσ = length(tetrads)
-    u = 0.
-    for t in tetrads
-        u += Δfe(X, t...) * Δfe(U, t...)
     end
 
     return u / Nσ
