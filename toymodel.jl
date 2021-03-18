@@ -81,9 +81,9 @@ F̄₁ = varUstat * (N * (N-1)) / mean(Δ₂₁)
 @printf("For N = %.0f, and S = %.0f, meanF₁ = %0.5f", N, sims, float(meanF₁))
 @printf("For N = %.0f, and S = %.0f, F̄₁ = %0.5f", N, sims, float(F̄₁))
 
-hist1 = histogram(F₁, bins=:scott, title= "For N = 40, and S = 10", label="", xlabel="F₁",
+hist₁ = histogram(F₁, bins=:scott, title= "For N = 40, and S = 10", label="", xlabel="F₁",
 ylabel="Frequency")
-hist1
+hist₁
 savefig("results/histF1_N40_S10.pdf")
 
 F₂ = varUstat * (N * (N-1)) ./ Δ₂₂
@@ -92,7 +92,7 @@ F̄₂ = varUstat * (N * (N-1)) / mean(Δ₂₂)
 @printf("For N = %.0f, and S = %.0f, meanF₂ = %0.5f", N, sims, float(meanF₂))
 @printf("For N = %.0f, and S = %.0f, F̄₂ = %0.5f", N, sims, float(F̄₂))
 
-hist2 = histogram(F₂, bins=:scott, title= "For N = 40, and S = 10", label="", xlabel="F₂",
+hist₂ = histogram(F₂, bins=:scott, title= "For N = 40, and S = 10", label="", xlabel="F₂",
 ylabel="Frequency")
-hist2
+hist₂
 savefig("results/histF2_N40_S10.pdf")
