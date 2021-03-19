@@ -1,10 +1,10 @@
-using DelimitedFiles
-using Base.Threads
-using Distributed
+using ThreadsX
+using Base.Iterators
 
 using Random, Distributions
-using Combinatorics
 using LinearAlgebra
+
+using DelimitedFiles
 
 include("utils/stats.jl")
 include("utils/dgp.jl")
@@ -15,8 +15,8 @@ function simulation(N)
 
     X, U = datageneration(N)
 
-    Ustat = computeU(X, U, N)
-    Δ₂₁, Δ₂₂ = computeΔ₂(X, U, N)
+    @time Ustat = computeU(X, U, N)
+    @time Δ₂₁, Δ₂₂ = computeΔ₂(X, U, N)
 
     return Δ₂₁, Δ₂₂, Ustat 
 

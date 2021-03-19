@@ -35,9 +35,12 @@ Computes the summand for the second estimator of Δ₂
 """
 function scombsinefficient(X, U, i, j, k, l)
     summand = 0.
-    @inbounds for a in (i, j, k, l), b in (i, j, k, l)
+    tup = (i, j, k, l)
+    
+
+    for a in tup, b in tup
         (a - b) == 0 && continue
-        for c in (i, j, k, l), d in (i, j, k, l)
+        @inbounds  for c in tup, d in tup
             (c - a) * (c - b) == 0 && continue
             (d - c) * (d - b) * (d - a) == 0 && continue
             summand += s(U, X, a, b, c, d) 
@@ -77,8 +80,8 @@ end
     s̄₂ = 0.
 
     # Fixing a dyad i,j
-    @inbounds for i in 1:N, j in 1:N
-        (i - j) == 0 && continue
+    ThreadsX.foreach(product(1:N, 1:N)) do (i, j)
+        (i - j) == 0 && return
 
         sdyad₁ = 0.
         sdyad₂ = 0.
@@ -98,6 +101,7 @@ end
 
         s̄₁ += (sdyad₁ / Ncombs)^2
         s̄₂ += (sdyad₂ / Ncombs)^2
+    
     end
 
     # Taking the average over dyads for both estimators
