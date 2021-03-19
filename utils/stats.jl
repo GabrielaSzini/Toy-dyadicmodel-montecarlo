@@ -38,16 +38,16 @@ Computes the summand for the second estimator of Δ₂
 scombsinefficient(X, U, tetrad) = scombsinefficient(X, U, tetrad...)
 function scombsinefficient(X, U, i, j, k, l)
     summand = 0.
-    @inbounds for a in (i,j,k,l), b in (i,j,k,l)
+    @inbounds for a in (i, j, k, l), b in (i, j, k, l)
         (a - b) == 0 && continue
-        for c in (i,j,k,l), d in (i,j,k,l)
+        for c in (i, j, k, l), d in (i, j, k, l)
             (c - a) * (c - b) == 0 && continue
             (d - c) * (d - b) * (d - a) == 0 && continue
             summand += s(U, X, a, b, c, d) 
         end
     end
 
-    return summand/24
+    return summand / 24
 
 end
 
@@ -74,3 +74,4 @@ Function that takes double differencing (same as previous one?)
     return u / Nσ
 
 end
+
