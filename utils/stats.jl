@@ -8,15 +8,13 @@ end
 """
 Function that computes the score
 """
-s(U, X, i, j, k, l) = s(U, X, (i, j, k, l))
-function s(U, X, tetrad)
-    return Δ(U, tetrad...) * Δ(X, tetrad...)
+function s(U, X, i, j, k, l)
+    return Δ(U, i, j, k, l) * Δ(X, i, j, k, l)
 end
 
 """
 Computes the summand for the first estimator of Δ₂
 """
-scombs(X, U, tetrad) = scombs(X, U, tetrad...)
 function scombs(X, U, i, j, k, l)
     summand = @inbounds (
         Δ(X, i, j, k, l) * U[i,j] +
@@ -35,7 +33,6 @@ end
 """
 Computes the summand for the second estimator of Δ₂
 """
-scombsinefficient(X, U, tetrad) = scombsinefficient(X, U, tetrad...)
 function scombsinefficient(X, U, i, j, k, l)
     summand = 0.
     @inbounds for a in (i, j, k, l), b in (i, j, k, l)
@@ -51,10 +48,6 @@ function scombsinefficient(X, U, i, j, k, l)
 
 end
 
-"""
-Function that takes double differencing (same as previous one?)
-"""
-Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 
 @inline function computeU(X::Matrix, U::Matrix, N::Int64)
 
@@ -67,7 +60,7 @@ Function that takes double differencing (same as previous one?)
         for k in 1:N, l in 1:N
             (k - i) * (k - j) == 0 && continue
             (l - k) * (l - j) * (l - i) == 0 && continue
-            u += Δfe(X, i, j, k, l) * Δfe(U, i, j, k, l)
+            u += s(U, X, i, j, k, l)
         end
     end
 

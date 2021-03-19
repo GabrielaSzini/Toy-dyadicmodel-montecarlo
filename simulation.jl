@@ -15,7 +15,7 @@ function simulation(N)
 
     X, U = datageneration(N)
 
-    Ustat = computeU(X, U, N)
+    @time Ustat = computeU(X, U, N)
         
     # Obtaining Δ₂
     Ndyads = N * (N - 1)
@@ -54,7 +54,7 @@ function simulation(N)
 
 end
 
-N = 40
+N = 100
 sims = 10
 
 @time result = map(simulation, repeat([N], sims))
