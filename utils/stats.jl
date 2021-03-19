@@ -2,7 +2,7 @@
 Function that takes double differencing
 """
 function Δ(M, i, j, k, l)
-    @inbounds (M[i, j] - M[i, k]) - (M[l, j] - M[l, k])
+    @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 end
 
 """
@@ -37,10 +37,9 @@ function scombsinefficient(X, U, i, j, k, l)
     summand = 0.
     tup = (i, j, k, l)
     
-
-    for a in tup, b in tup
+    @inbounds for a in tup, b in tup
         (a - b) == 0 && continue
-        @inbounds  for c in tup, d in tup
+        for c in tup, d in tup
             (c - a) * (c - b) == 0 && continue
             (d - c) * (d - b) * (d - a) == 0 && continue
             summand += s(U, X, a, b, c, d) 
@@ -54,7 +53,7 @@ end
 
 @inline function computeU(X::Matrix, U::Matrix, N::Int64)
 
-    Nσ = factorial(N, N - 4)
+    Nσ = N * (N - 1)
 
     u = 0.
 
@@ -88,15 +87,12 @@ end
         Ncombs = binomial(N - 2, 2)
 
         # Obtaining the conditional expectations over this dyad
-        for l in 1:N
+        @inbounds for l in 1:N, k in l:N
             (l - i) * (l - j) == 0 && continue
+            (l - k) * (k - i) * (k - j) == 0 && continue
 
-            for k in l:N
-                (k - i) * (k - j) == 0 && continue
-
-                sdyad₁ += scombs(X, U, i, j, k, l)
-                sdyad₂ += scombsinefficient(X, U, i, j, k, l) 
-            end
+            sdyad₁ += scombs(X, U, i, j, k, l)
+            sdyad₂ += scombsinefficient(X, U, i, j, k, l) 
         end
 
         s̄₁ += (sdyad₁ / Ncombs)^2
@@ -111,3 +107,4 @@ end
     return Δ₂₁, Δ₂₂
 
 end
+

@@ -1,30 +1,38 @@
-using ThreadsX
-using Base.Iterators
+using Distributed
 
-using Random, Distributions
-using LinearAlgebra
+addprocs(7; exeflags="--project")
 
-using DelimitedFiles
+@everywhere begin
+    using DelimitedFiles
+    using ProgressMeter
+    using ThreadsX
+    using Base.Iterators
 
-include("utils/stats.jl")
-include("utils/dgp.jl")
+    using Random, Distributions
+    using LinearAlgebra
 
-function simulation(N)
 
-    E = Set(1:N)
+    include("utils/stats.jl")
+    include("utils/dgp.jl")
+
+end
+
+@everywhere function simulation(N)
 
     X, U = datageneration(N)
 
-    @time Ustat = computeU(X, U, N)
-    @time Δ₂₁, Δ₂₂ = computeΔ₂(X, U, N)
+    Ustat = computeU(X, U, N)
+    Δ₂₁, Δ₂₂ = computeΔ₂(X, U, N)
 
     return Δ₂₁, Δ₂₂, Ustat 
 
 end
 
 N = 100
-sims = 10
+sims = 1000
 
-@time result = map(simulation, repeat([N], sims))
+result = @time @showprogress pmap(1:sims) do sim
+    simulation(N)
+end
 
 writedlm("results/out.csv", result, ',')
