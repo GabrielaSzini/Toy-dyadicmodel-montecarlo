@@ -1,98 +1,62 @@
-using Distributed
 using DelimitedFiles
-using Printf
-using Plots
-addprocs(8)
+using Base.Threads
+using Distributed
 
-@everywhere begin
-    using Pkg; Pkg.activate(".")
-    
-    using Random, Distributions
-    using Combinatorics
-    using LinearAlgebra
+using Random, Distributions
+using Combinatorics
+using LinearAlgebra
 
-    include("utils/stats.jl")
-    include("utils/dgp.jl")
+include("utils/stats.jl")
+include("utils/dgp.jl")
 
-end
-
-
-@everywhere function simulation(N)
+function simulation(N)
 
     E = Set(1:N)
 
     X, U = datageneration(N)
 
-    tetrads = permutations(1:N, 4)
-
-    ΔX, ΔU = Δfe(X), Δfe(U)
-    Ustat = mean(@. ΔX(tetrads) * ΔU(tetrads))
-    
-    # Variance
+    Ustat = computeU(X, U, N)
+        
+    # Obtaining Δ₂
     Ndyads = N * (N - 1)
-    s̄₁ = zeros(Ndyads)
-    s̄₂ = zeros(Ndyads)
+    s̄₁ = 0.
+    s̄₂ = 0.
 
-    for (l, dyad) in enumerate(permutations(1:N, 2))
+    # Fixing a dyad i,j
+    @inbounds for i in 1:N, j in 1:N
+        (i - j) == 0 && continue
 
-        i, j = dyad
+        sdyad₁ = 0.
+        sdyad₂ = 0.
+        Ncombs = binomial(N - 2, 2)
 
-        # Combinations of not i, j dyads
-        notij = collect(setdiff(E, Set(dyad)))
-        othercomb = combinations(notij, 2)
+        # Obtaining the conditional expectations over this dyad
+        for l in 1:N
+            (l - i) * (l - j) == 0 && continue
 
-        """
-        Here we can propose two estimators for the expectation of s_ij conditional on a dyad i,j
-        """     
-        s̄₁[l] = mean(scombs(X, U, i, j, k, l) for (k, l) in othercomb)
-        s̄₂[l] = mean(scombsinefficient(X, U, i, j, k, l) for (k, l) in othercomb)
+            for k in l:N
+                (k - i) * (k - j) == 0 && continue
+
+                sdyad₁ += scombs(X, U, i, j, k, l)
+                sdyad₂ += scombsinefficient(X, U, i, j, k, l) 
+            end
+        end
+
+        s̄₁ += (sdyad₁ / Ncombs)^2
+        s̄₂ += (sdyad₂ / Ncombs)^2
     end
 
-    Δ₂₁ = mean(s̄₁.^2)
-    Δ₂₂ = mean(s̄₂.^2)
+    # Taking the average over dyads for both estimators
+    Δ₂₁ = s̄₁ / Ndyads
+    Δ₂₂ = s̄₂ / Ndyads 
 
-    return  Δ₂₁, Δ₂₂, Ustat 
+    return Δ₂₁, Δ₂₂, Ustat 
 
 end
 
 N = 40
 sims = 10
 
-function parallelrun()
-    tomap = repeat([N], sims)
-    return pmap(simulation, tomap)
-end
-
-@time result = parallelrun()
+@time result = map(simulation, repeat([N], sims))
 
 writedlm("results/out.csv", result, ',')
-
-""" 
-Some further results to obtain the factors and plots
-"""
-Δ₂₁ = [x[1] for x in result]
-Δ₂₂ = [x[2] for x in result]
-Ustat = [x[3] for x in result]
-
-varUstat = var(Ustat)
-F₁ = varUstat * (N * (N-1)) ./ Δ₂₁
-meanF₁ = mean(F₁)
-F̄₁ = varUstat * (N * (N-1)) / mean(Δ₂₁)
-@printf("For N = %.0f, and S = %.0f, meanF₁ = %0.5f", N, sims, float(meanF₁))
-@printf("For N = %.0f, and S = %.0f, F̄₁ = %0.5f", N, sims, float(F̄₁))
-
-hist₁ = histogram(F₁, bins=:scott, title= "For N = 40, and S = 10", label="", xlabel="F₁",
-ylabel="Frequency")
-hist₁
-savefig("results/histF1_N40_S10.pdf")
-
-F₂ = varUstat * (N * (N-1)) ./ Δ₂₂
-meanF₂ = mean(F₂)
-F̄₂ = varUstat * (N * (N-1)) / mean(Δ₂₂)
-@printf("For N = %.0f, and S = %.0f, meanF₂ = %0.5f", N, sims, float(meanF₂))
-@printf("For N = %.0f, and S = %.0f, F̄₂ = %0.5f", N, sims, float(F̄₂))
-
-hist₂ = histogram(F₂, bins=:scott, title= "For N = 40, and S = 10", label="", xlabel="F₂",
-ylabel="Frequency")
-hist₂
-savefig("results/histF2_N40_S10.pdf")

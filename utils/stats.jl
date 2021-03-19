@@ -1,20 +1,24 @@
-factor = 0.041666666666666664
-
+"""
+Function that takes double differencing
+"""
 function Δ(M, i, j, k, l)
-    return (M[i, j] - M[i, k]) - (M[l, j] - M[l, k])
+    @inbounds (M[i, j] - M[i, k]) - (M[l, j] - M[l, k])
 end
 
+"""
+Function that computes the score
+"""
 s(U, X, i, j, k, l) = s(U, X, (i, j, k, l))
 function s(U, X, tetrad)
     return Δ(U, tetrad...) * Δ(X, tetrad...)
 end
 
 """
-Computes the summand for first estimator
+Computes the summand for the first estimator of Δ₂
 """
 scombs(X, U, tetrad) = scombs(X, U, tetrad...)
 function scombs(X, U, i, j, k, l)
-    return factor * (
+    summand = @inbounds (
         Δ(X, i, j, k, l) * U[i,j] +
         Δ(X, i, k, j, l) * (- U[i,j]) +
         Δ(X, k, j, l, i) * (- U[i,j]) +
@@ -24,25 +28,50 @@ function scombs(X, U, i, j, k, l)
         Δ(X, i, j, l, k) * U[i,j] +
         Δ(X, i, l, j, k) * (- U[i,j]) 
     )
+
+    return summand / 24
 end
 
 """
-Computes the summand for the second estimator
+Computes the summand for the second estimator of Δ₂
 """
 scombsinefficient(X, U, tetrad) = scombsinefficient(X, U, tetrad...)
 function scombsinefficient(X, U, i, j, k, l)
-    return mean(s(U, X, perm...) for perm in permutations((i,j,k,l),4)
-    )
+    summand = 0.
+    @inbounds for a in (i, j, k, l), b in (i, j, k, l)
+        (a - b) == 0 && continue
+        for c in (i, j, k, l), d in (i, j, k, l)
+            (c - a) * (c - b) == 0 && continue
+            (d - c) * (d - b) * (d - a) == 0 && continue
+            summand += s(U, X, a, b, c, d) 
+        end
+    end
+
+    return summand / 24
+
 end
 
 """
-Differencing out FE of tetrad of A, using tetrads t
+Function that takes double differencing (same as previous one?)
 """
-Δfe(M::Matrix) = t -> Δfe(M, t)
-Δfe(M::Matrix, t) = Δfe(M::Matrix, t...)
-function Δfe(M::Matrix, i, j, k, l)
-    first = M[i, j] - M[i, k]
-    second = M[l, j] - M[l, k]
+Δfe(M, i, j, k, l) = @inbounds M[i, j] - M[i, k] - M[l, j] + M[l, k]
 
-    return first - second
+@inline function computeU(X::Matrix, U::Matrix, N::Int64)
+
+    Nσ = factorial(N, N - 4)
+
+    u = 0.
+
+    @inbounds for i in 1:N, j in 1:N
+        (i - j) == 0 && continue
+        for k in 1:N, l in 1:N
+            (k - i) * (k - j) == 0 && continue
+            (l - k) * (l - j) * (l - i) == 0 && continue
+            u += Δfe(X, i, j, k, l) * Δfe(U, i, j, k, l)
+        end
+    end
+
+    return u / Nσ
+
 end
+
