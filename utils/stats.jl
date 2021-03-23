@@ -53,7 +53,7 @@ end
 
 @inline function computeU(X::Matrix, U::Matrix, N::Int64)
 
-    Nσ = N * (N - 1)
+    Nσ = N * (N - 1) * (N - 2) * (N - 3)
 
     u = 0.
 
