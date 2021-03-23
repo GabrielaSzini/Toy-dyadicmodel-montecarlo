@@ -1,12 +1,15 @@
 using Printf
 using Plots
+using CSV
+using DataFrames
 
+result = DataFrame(CSV.File("results/outN50sims10000.csv", header=0))
 """ 
 Some further results to obtain the factors and plots
 """
-Δ₂₁ = [x[1] for x in result]
-Δ₂₂ = [x[2] for x in result]
-Ustat = [x[3] for x in result]
+Δ₂₁ = result[:,1]
+Δ₂₂ = result[:,2]
+Ustat = result[:,3]
 
 varUstat = var(Ustat)
 F₁ = varUstat * (N * (N - 1)) ./ Δ₂₁
