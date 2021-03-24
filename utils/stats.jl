@@ -53,7 +53,7 @@ end
 
 @inline function computeU(X::Matrix, U::Matrix, N::Int64)
 
-    Nσ = N * (N - 1)
+    Nσ = N * (N - 1) * (N - 2) * (N - 3)
 
     u = 0.
 
@@ -108,3 +108,46 @@ end
 
 end
 
+
+""" 
+Function that computes X\tilde or Y\tilde for OLS regression
+"""
+function variablesreg(X::Matrix, N::Int64)
+    X̃ = zeros(N * (N-1) * (N-2) * (N-3))
+
+    counter = 1
+    # Getting the permutations for constructing the variable
+    @inbounds for i in 1:N, j in 1:N # Did not include the threadsX because the order matters
+        (i - j) == 0 && continue
+
+        @inbounds for l in 1:N, k in 1:N
+            (l - i) * (l - j) == 0 && continue
+            (l - k) * (k - i) * (k - j) == 0 && continue
+
+            X̃[counter] = Δ(X, i, j, k, l)
+            counter += 1
+        end
+    end
+
+    return X̃
+
+end
+
+"""
+Function that computes the OLS estimator and its variance from standard OLS
+"""
+function OLSestimator(Y,X)
+    estimate = inv(X'*X)*(X'*Y)
+    return estimate
+end
+
+"""
+Function that computes the variance obtained with U-statistics
+"""
+
+function OLSvariance(X, Δ₂, F)
+    Mₓₓ = (1/(N * (N-1) * (N-2) * (N-3))) * X' * X
+    variance = (1/(N * (N-1))) * inv(Mₓₓ) * F * Δ₂ * inv(Mₓₓ)
+
+    return variance
+end

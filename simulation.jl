@@ -1,6 +1,6 @@
 using Distributed
 
-addprocs(7; exeflags="--project")
+addprocs(8; exeflags="--project")
 
 @everywhere begin
     using DelimitedFiles
@@ -28,11 +28,11 @@ end
 
 end
 
-N = 100
-sims = 1000
+N = 50
+sims = 10000
 
 result = @time @showprogress pmap(1:sims) do sim
     simulation(N)
 end
 
-writedlm("results/out.csv", result, ',')
+writedlm("results/outN50sims10000.csv", result, ',')
