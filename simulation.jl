@@ -39,11 +39,11 @@ end
 end
 
 β₁ = 1
-N = 10
+N = 20
 sims = 5000
 
 result = @time @showprogress pmap(1:sims) do sim
     simulation(N, β₁)
 end
 
-writedlm("results/outN10sims5000_design3.csv", result, ',')
+writedlm("results/outN20sims5000_design3.csv", result, ',')

@@ -1,6 +1,5 @@
 using Printf
 using CSV
-using DataFrames
 using Distributions
 using Plots
 
@@ -34,7 +33,7 @@ F̄₁ = varUstat * (N * (N - 1)) / mean(Δ₂₁) # look at this one
 hist₁ = histogram(F₁, bins=:scott, title="For N = $N, and S = $sims", label="", xlabel="F₁",
 ylabel="Frequency")
 hist₁
-savefig("results/histograms-F1/histF1_N$(N)_S$(sims)_design2.pdf")
+savefig("results/histograms-F1/histF1_N$(N)_S$(sims)_design2.png")
 
 F₂ = varUstat * (N * (N - 1)) ./ Δ₂₂
 meanF₂ = mean(F₂)
