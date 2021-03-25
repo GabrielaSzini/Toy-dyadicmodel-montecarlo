@@ -17,22 +17,33 @@ addprocs(8; exeflags="--project")
 
 end
 
-@everywhere function simulation(N)
+@everywhere function simulation(N, β₁)
 
-    X, U = datageneration(N)
+    Y, X, U = dgpolssecond(N, β₁)
 
+    # Computing U-statistic and Δ₂
     Ustat = computeU(X, U, N)
     Δ₂₁, Δ₂₂ = computeΔ₂(X, U, N)
 
-    return Δ₂₁, Δ₂₂, Ustat 
+    # Computing OLS estimations
+    X̃ = variablesreg(X, N)
+    Ỹ = variablesreg(Y, N)
+    β̂₁ = OLSestimator(Ỹ,X̃)
+    varβ̂₁eff144 = OLSvariance(X̃, Δ₂₁, 144)
+    varβ̂₁eff72 = OLSvariance(X̃, Δ₂₁, 72)
+    varβ̂₁ineff144 = OLSvariance(X̃, Δ₂₂, 144)
+    varβ̂₁ineff72 = OLSvariance(X̃, Δ₂₂, 72)
+
+    return Δ₂₁, Δ₂₂, Ustat, β̂₁, varβ̂₁eff144, varβ̂₁eff72, varβ̂₁ineff144, varβ̂₁ineff72
 
 end
 
+β₁ = 1
 N = 50
 sims = 10000
 
 result = @time @showprogress pmap(1:sims) do sim
-    simulation(N)
+    simulation(N, β₁)
 end
 
-writedlm("results/outN50sims10000.csv", result, ',')
+writedlm("results/outN50sims1000_design2.csv", result, ',')
