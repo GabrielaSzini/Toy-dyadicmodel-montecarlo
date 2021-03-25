@@ -19,7 +19,7 @@ end
 
 @everywhere function simulation(N, β₁)
 
-    Y, X, U = dgpolssecond(N, β₁)
+    Y, X, U = dgpolsthird(N, β₁)
 
     # Computing U-statistic and Δ₂
     Ustat = computeU(X, U, N)
@@ -39,11 +39,11 @@ end
 end
 
 β₁ = 1
-N = 50
-sims = 10000
+N = 10
+sims = 5000
 
 result = @time @showprogress pmap(1:sims) do sim
     simulation(N, β₁)
 end
 
-writedlm("results/outN50sims1000_design2.csv", result, ',')
+writedlm("results/outN10sims5000_design3.csv", result, ',')
