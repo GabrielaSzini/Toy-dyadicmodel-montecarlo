@@ -18,7 +18,7 @@ end
 DGP for OLS estimator: first design (fixed effects uncorrelated with explanatory variables and continuous X)
 """
 
-function dgpolsfirst(N, β₁)
+function dgpolsdesign1(N, β₁)
 
     Uij = rand(Normal(), (N, N))
     Uij[diagind(Uij)] .= 0.
@@ -45,7 +45,7 @@ end
 DGP for OLS estimator: second design (fixed effects correlated with explanatory variables and continuous X)
 """ 
 
-function dgpolssecond(N, β₁)
+function dgpolsdesign2(N, β₁)
 
     Uij = rand(Normal(), (N, N))
     Uij[diagind(Uij)] .= 0.
@@ -73,7 +73,7 @@ end
 """
 DGP for OLS estimator: third design (fixed effects uncorrelated with explanatory variables and discrete X)
 """
-function dgpolsthird(N, β₁)
+function dgpolsdesign3(N, β₁)
 
     Uij = rand(Normal(), (N, N))
     Uij[diagind(Uij)] .= 0.
@@ -102,7 +102,7 @@ end
 """
 DGP for OLS estimator: fourth design (fixed effects correlated with explanatory variables and discrete X)
 """
-function dgpolsfourth(N, β₁)
+function dgpolsdesign4(N, β₁)
 
     Uij = rand(Normal(), (N, N))
     Uij[diagind(Uij)] .= 0.

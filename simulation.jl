@@ -17,9 +17,9 @@ addprocs(8; exeflags="--project")
 
 end
 
-@everywhere function simulation(N, β₁)
+@everywhere function simulation(N, β₁, design)
 
-    Y, X, U = dgpolsfourth(N, β₁)
+    Y, X, U = dgpolsdesign$(design)(N, β₁)
 
     # Computing U-statistic and Δ₂
     Ustat = computeU(X, U, N)
@@ -39,11 +39,12 @@ end
 end
 
 β₁ = 1
-N = 50
-sims = 5000
+N = 10
+sims = 10000
+design = 1
 
 result = @time @showprogress pmap(1:sims) do sim
-    simulation(N, β₁)
+    simulation(N, β₁, design)
 end
 
-writedlm("results/outN50sims5000_design4.csv", result, ',')
+writedlm("results/outN$(N)sims$(sims)_design$(design).csv", result, ',')
