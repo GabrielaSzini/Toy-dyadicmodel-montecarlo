@@ -1,15 +1,18 @@
 using Printf
-using CSV
 using Distributions
 using Plots
+using Statistics
+using DelimitedFiles
 
-result = DataFrame(CSV.File("results/outN10sims5000_design2.csv", header=0))
+N=50
+sims=1000
+β₁=1
+design = 4
+result = readdlm("results/outN$(N)sims$(sims)_design$(design).csv", ',', Float64)
+
 """ 
 Some further results to obtain the factors and plots
 """
-N=10
-sims=5000
-β₁=1
 
 Δ₂₁ = result[:,1]
 Δ₂₂ = result[:,2]
@@ -27,36 +30,36 @@ varUstat = var(Ustat)
 F₁ = varUstat * (N * (N - 1)) ./ Δ₂₁
 meanF₁ = mean(F₁)
 F̄₁ = varUstat * (N * (N - 1)) / mean(Δ₂₁) # look at this one
-@printf("For N = %.0f, and S = %.0f, meanF₁ = %0.5f", N, sims, float(meanF₁))
-@printf("For N = %.0f, and S = %.0f, F̄₁ = %0.5f", N, sims, float(F̄₁))
+@printf("For N = %.0f, and S = %.0f, meanF₁ = %0.5f\n", N, sims, float(meanF₁))
+@printf("For N = %.0f, and S = %.0f, F̄₁ = %0.5f\n", N, sims, float(F̄₁))
 
 hist₁ = histogram(F₁, bins=:scott, title="For N = $N, and S = $sims", label="", xlabel="F₁",
 ylabel="Frequency")
 hist₁
-savefig("results/histograms-F1/histF1_N$(N)_S$(sims)_design2.png")
+savefig("results/histograms-F1/histF1_N$(N)_S$(sims)_design$(design).pdf")
 
 F₂ = varUstat * (N * (N - 1)) ./ Δ₂₂
 meanF₂ = mean(F₂)
 F̄₂ = varUstat * (N * (N - 1)) / mean(Δ₂₂)
-@printf("For N = %.0f, and S = %.0f, meanF₂ = %0.5f", N, sims, float(meanF₂))
-@printf("For N = %.0f, and S = %.0f, F̄₂ = %0.5f", N, sims, float(F̄₂))
+@printf("For N = %.0f, and S = %.0f, meanF₂ = %0.5f\n", N, sims, float(meanF₂))
+@printf("For N = %.0f, and S = %.0f, F̄₂ = %0.5f\n", N, sims, float(F̄₂))
 
 hist₂ = histogram(F₂, bins=:scott, title="For N = $N, and S = $sims", label="", xlabel="F₂",
 ylabel="Frequency")
 hist₂
-savefig("results/histograms-F2/histF2_N$(N)_S$(sims)_design2.pdf")
+savefig("results/histograms-F2/histF2_N$(N)_S$(sims)_design$(design).pdf")
 
 """
 Results for OLS estimator
 """
 
 meanβ̂₁ = mean(β̂₁)
-@printf("For N = %.0f, and S = %.0f, meanβ̂₁ = %0.5f", N, sims, float(meanβ̂₁))
+@printf("For N = %.0f, and S = %.0f, meanβ̂₁ = %0.5f\n", N, sims, float(meanβ̂₁))
 
 hist₃ = histogram(β̂₁, bins=:scott, title="For N = $N, and S = $sims", label="", xlabel="β̂₁",
 ylabel="Frequency")
 hist₃
-savefig("results/histograms-beta/histbeta_N$(N)_S$(sims)_design2.pdf")
+savefig("results/histograms-beta/histbeta_N$(N)_S$(sims)_design$(design).pdf")
 
 function myqqplot(obs,F⁰,title)
     nobs=length(obs)
@@ -67,27 +70,27 @@ function myqqplot(obs,F⁰,title)
     plot!(obs,obs,label="")
 end
 myqqplot(β̂₁,Normal(mean(β̂₁), std(β̂₁)),"For N = $N, and S = $sims")
-savefig("results/qqplot-beta/qqplotbeta_N$(N)_S$(sims)_design2.pdf")
+savefig("results/qqplot-beta/qqplotbeta_N$(N)_S$(sims)_design$(design).pdf")
 
 varβ̂₁ = var(β̂₁)
-@printf("For N = %.0f, and S = %.0f, varβ̂₁ = %0.5f", N, sims, float(varβ̂₁))
+@printf("For N = %.0f, and S = %.0f, varβ̂₁ = %0.5f\n", N, sims, float(varβ̂₁))
 
 meanvarβ̂₁eff144 = mean(varβ̂₁eff144)
-@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁eff144 = %0.5f", N, sims, float(meanvarβ̂₁eff144))
+@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁eff144 = %0.5f\n", N, sims, float(meanvarβ̂₁eff144))
 sizeβ̂₁eff144 = sum(abs.((β̂₁ .- β₁)./(sqrt.(varβ̂₁eff144))) .> 1.96)/sims 
-@printf("For N = %.0f, and S = %.0f, sizeβ̂₁eff144 = %0.5f", N, sims, float(sizeβ̂₁eff144))
+@printf("For N = %.0f, and S = %.0f, sizeβ̂₁eff144 = %0.5f\n", N, sims, float(sizeβ̂₁eff144))
 
 meanvarβ̂₁eff72 = mean(varβ̂₁eff72)
-@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁eff72 = %0.5f", N, sims, float(meanvarβ̂₁eff72))
+@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁eff72 = %0.5f\n", N, sims, float(meanvarβ̂₁eff72))
 sizeβ̂₁eff72 = sum(abs.((β̂₁ .- β₁)./(sqrt.(varβ̂₁eff72))) .> 1.96)/sims 
-@printf("For N = %.0f, and S = %.0f, sizeβ̂₁eff72 = %0.5f", N, sims, float(sizeβ̂₁eff72))
+@printf("For N = %.0f, and S = %.0f, sizeβ̂₁eff72 = %0.5f\n", N, sims, float(sizeβ̂₁eff72))
 
 meanvarβ̂₁ineff144 = mean(varβ̂₁ineff144)
-@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁ineff144 = %0.5f", N, sims, float(meanvarβ̂₁ineff144))
+@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁ineff144 = %0.5f\n", N, sims, float(meanvarβ̂₁ineff144))
 sizeβ̂₁ineff144 = sum(abs.((β̂₁ .- β₁)./(sqrt.(varβ̂₁ineff144))) .> 1.96)/sims 
-@printf("For N = %.0f, and S = %.0f, sizeβ̂₁ineff144 = %0.5f", N, sims, float(sizeβ̂₁ineff144))
+@printf("For N = %.0f, and S = %.0f, sizeβ̂₁ineff144 = %0.5f\n", N, sims, float(sizeβ̂₁ineff144))
 
 meanvarβ̂₁ineff72 = mean(varβ̂₁ineff72)
-@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁ineff72 = %0.5f", N, sims, float(meanvarβ̂₁ineff72))
+@printf("For N = %.0f, and S = %.0f, meanvarβ̂₁ineff72 = %0.5f\n", N, sims, float(meanvarβ̂₁ineff72))
 sizeβ̂₁ineff72  = sum(abs.((β̂₁ .- β₁)./(sqrt.(varβ̂₁ineff72))) .> 1.96)/sims 
-@printf("For N = %.0f, and S = %.0f, sizeβ̂₁ineff72 = %0.5f", N, sims, float(sizeβ̂₁ineff72))
+@printf("For N = %.0f, and S = %.0f, sizeβ̂₁ineff72 = %0.5f\n", N, sims, float(sizeβ̂₁ineff72))
