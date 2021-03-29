@@ -62,10 +62,10 @@ for design ∈ [1,2,3,4]
             #ploting histograms
             hist₁ = histogram(F₁, bins=:scott, title="For N = $N, and S = $sims", label="", xlabel="F₁",
             ylabel="Frequency")
-            savefig("results/histograms-F1/histF1_N$(N)_S$(sims)_design$(design).svg")
+            savefig("results/histograms-F1/histF1_N$(N)_S$(sims)_design$(design).png")
             hist₂ = histogram(F₂, bins=:scott, title="For N = $N, and S = $sims", label="", xlabel="F₂",
             ylabel="Frequency")
-            savefig("results/histograms-F2/histF2_N$(N)_S$(sims)_design$(design).svg")
+            savefig("results/histograms-F2/histF2_N$(N)_S$(sims)_design$(design).png")
 
             """
             Results for OLS estimator
@@ -84,10 +84,10 @@ for design ∈ [1,2,3,4]
             #ploting histogram and qq-plot
             hist₃ = histogram(β̂₁, bins=:scott, title="For N = $N, and S = $sims", label="", xlabel="β̂₁",
             ylabel="Frequency")
-            savefig("results/histograms-beta/histbeta_N$(N)_S$(sims)_design$(design).svg")
+            savefig("results/histograms-beta/histbeta_N$(N)_S$(sims)_design$(design).png")
 
             myqqplot(β̂₁,Normal(mean(β̂₁), std(β̂₁)),"For N = $N, and S = $sims")
-            savefig("results/qqplot-beta/qqplotbeta_N$(N)_S$(sims)_design$(design).svg")
+            savefig("results/qqplot-beta/qqplotbeta_N$(N)_S$(sims)_design$(design).png")
 
             """
             Results for size of t-tests
@@ -100,6 +100,23 @@ for design ∈ [1,2,3,4]
             sizedesign[design][counter,4] = sum(abs.((β̂₁ .- β₁)./(sqrt.(varβ̂₁eff72))) .> 1.96)/sims #sizeβ̂₁eff72
             sizedesign[design][counter,5] = sum(abs.((β̂₁ .- β₁)./(sqrt.(varβ̂₁ineff144))) .> 1.96)/sims #sizeβ̂₁ineff144
             sizedesign[design][counter,6] = sum(abs.((β̂₁ .- β₁)./(sqrt.(varβ̂₁ineff72))) .> 1.96)/sims #sizeβ̂₁ineff72
+
+            #plotting QQ-plots of t-tests
+            ttesteff144 = (β̂₁ .- β₁)./(sqrt.(varβ̂₁eff144))
+            myqqplot(ttesteff144,Normal(mean(ttesteff144), std(ttesteff144)),"For N = $N, and S = $sims")
+            savefig("results/qqplot-ttest/qqplotttesteff144_N$(N)_S$(sims)_design$(design).png")
+            
+            ttesteff72 = (β̂₁ .- β₁)./(sqrt.(varβ̂₁eff72))
+            myqqplot(ttesteff72,Normal(mean(ttesteff72), std(ttesteff72)),"For N = $N, and S = $sims")
+            savefig("results/qqplot-ttest/qqplotttesteff72_N$(N)_S$(sims)_design$(design).png")
+
+            ttestineff144 = (β̂₁ .- β₁)./(sqrt.(varβ̂₁ineff144))
+            myqqplot(ttestineff144,Normal(mean(ttestineff144), std(ttestineff144)),"For N = $N, and S = $sims")
+            savefig("results/qqplot-ttest/qqplotttestineff144_N$(N)_S$(sims)_design$(design).png")
+
+            ttestineff72 = (β̂₁ .- β₁)./(sqrt.(varβ̂₁ineff72))
+            myqqplot(ttestineff72,Normal(mean(ttestineff72), std(ttestineff72)),"For N = $N, and S = $sims")
+            savefig("results/qqplot-ttest/qqplotttestineff72_N$(N)_S$(sims)_design$(design).png")
 
             counter += 1
         end
