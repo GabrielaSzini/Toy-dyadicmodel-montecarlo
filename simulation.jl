@@ -19,29 +19,28 @@ end
 
 @everywhere function simulation(N, β₁, design)
 
-    Y, X, U = dgpolsdesign$(design)(N, β₁)
+    Y, X, U = dgpolsdesign2(N, β₁)
 
-    # Computing U-statistic and Δ₂
+    # Computing U-statistic, δ₂ and Δ₂
     Ustat = computeU(X, U, N)
-    Δ₂₁, Δ₂₂ = computeΔ₂(X, U, N)
+    δ₂ = computeδ₂(X, U, N)
+    Δ₂ = computeΔ₂(X, U, N)
 
     # Computing OLS estimations
     X̃ = variablesreg(X, N)
     Ỹ = variablesreg(Y, N)
     β̂₁ = OLSestimator(Ỹ,X̃)
-    varβ̂₁eff144 = OLSvariance(X̃, Δ₂₁, 144)
-    varβ̂₁eff72 = OLSvariance(X̃, Δ₂₁, 72)
-    varβ̂₁ineff144 = OLSvariance(X̃, Δ₂₂, 144)
-    varβ̂₁ineff72 = OLSvariance(X̃, Δ₂₂, 72)
+    varβ̂₁144 = OLSvariance(X̃, δ₂, 144)
+    varβ̂₁72 = OLSvariance(X̃, Δ₂, 72)
 
-    return Δ₂₁, Δ₂₂, Ustat, β̂₁, varβ̂₁eff144, varβ̂₁eff72, varβ̂₁ineff144, varβ̂₁ineff72
+    return δ₂, Δ₂, Ustat, β̂₁, varβ̂₁144, varβ̂₁72
 
 end
 
 β₁ = 1
-N = 10
+N = 50
 sims = 10000
-design = 1
+design = 2
 
 result = @time @showprogress pmap(1:sims) do sim
     simulation(N, β₁, design)

@@ -13,44 +13,8 @@ function s(U, X, i, j, k, l)
 end
 
 """
-Computes the summand for the first estimator of Δ₂
+Computes the U-statistic
 """
-function scombs(X, U, i, j, k, l)
-    summand = @inbounds (
-        Δ(X, i, j, k, l) * U[i,j] +
-        Δ(X, i, k, j, l) * (- U[i,j]) +
-        Δ(X, k, j, l, i) * (- U[i,j]) +
-        Δ(X, l, k, j, i) * U[i,j] +
-        Δ(X, k, l, j, i) * U[i,j] +
-        Δ(X, l, j, k, i) * (- U[i,j]) +
-        Δ(X, i, j, l, k) * U[i,j] +
-        Δ(X, i, l, j, k) * (- U[i,j]) 
-    )
-
-    return summand / 24
-end
-
-"""
-Computes the summand for the second estimator of Δ₂
-"""
-function scombsinefficient(X, U, i, j, k, l)
-    summand = 0.
-    tup = (i, j, k, l)
-    
-    @inbounds for a in tup, b in tup
-        (a - b) == 0 && continue
-        for c in tup, d in tup
-            (c - a) * (c - b) == 0 && continue
-            (d - c) * (d - b) * (d - a) == 0 && continue
-            summand += s(U, X, a, b, c, d) 
-        end
-    end
-
-    return summand / 24
-
-end
-
-
 @inline function computeU(X::Matrix, U::Matrix, N::Int64)
 
     Nσ = N * (N - 1) * (N - 2) * (N - 3)
@@ -70,19 +34,97 @@ end
 
 end
 
+"""
+Computes the summand for the estimator of δ₂
+"""
+function scombspermutations(X, U, i, j, k, l)
+    summand = @inbounds (
+        Δ(X, i, j, k, l) * U[i,j] +
+        Δ(X, i, k, j, l) * (- U[i,j]) +
+        Δ(X, k, j, l, i) * (- U[i,j]) +
+        Δ(X, l, k, j, i) * U[i,j] +
+        Δ(X, k, l, j, i) * U[i,j] +
+        Δ(X, l, j, k, i) * (- U[i,j]) +
+        Δ(X, i, j, l, k) * U[i,j] +
+        Δ(X, i, l, j, k) * (- U[i,j]) 
+    )
 
+    return summand / 24
+end
 
-@inline function computeΔ₂(X::Matrix, U::Matrix, N::Int64)
+"""
+Computes the summand for the estimator of Δ₂
+"""
+function scombscombinations(X, U, i, j, k, l)
+    summand = @inbounds (
+        Δ(X, i, j, k, l) * U[i,j] +
+        Δ(X, i, k, j, l) * (- U[i,j]) +
+        Δ(X, k, j, l, i) * (- U[i,j]) +
+        Δ(X, l, k, j, i) * U[i,j] +
+        Δ(X, k, l, j, i) * U[i,j] +
+        Δ(X, l, j, k, i) * (- U[i,j]) +
+        Δ(X, i, j, l, k) * U[i,j] +
+        Δ(X, i, l, j, k) * (- U[i,j]) +
+        Δ(X, j, i, k, l) * U[j,i] +
+        Δ(X, j, k, i, l) * (- U[j,i]) +
+        Δ(X, k, i, l, j) * (- U[j,i]) +
+        Δ(X, l, k, i, j) * U[j,i] +
+        Δ(X, k, l, i, j) * U[j,i] +
+        Δ(X, l, i, k, j) * (- U[j,i]) +
+        Δ(X, j, i, l, k) * U[j,i] +
+        Δ(X, j, l, i, k) * (- U[j,i]) 
+    )
+
+    return summand / 24
+
+end
+
+"""
+Computes the estimator of δ₂
+"""
+@inline function computeδ₂(X, U, N)
 
     Ndyads = N * (N - 1)
     s̄₁ = 0.
-    s̄₂ = 0.
 
     # Fixing a dyad i,j
     ThreadsX.foreach(product(1:N, 1:N)) do (i, j)
         (i - j) == 0 && return
 
         sdyad₁ = 0.
+        Ncombs = binomial(N - 2, 2)
+
+        # Obtaining the conditional expectations over this dyad
+        @inbounds for l in 1:N, k in l:N
+            (l - i) * (l - j) == 0 && continue
+            (l - k) * (k - i) * (k - j) == 0 && continue
+
+            sdyad₁ += scombspermutations(X, U, i, j, k, l)
+        end
+
+        s̄₁ += (sdyad₁ / Ncombs)^2
+    
+    end
+
+    # Taking the average over dyads for both estimators
+    δ₂ = s̄₁ / Ndyads
+    #Δ₂₂ = s̄₂ / Nyads 
+
+    return δ₂
+end
+
+"""
+Computes the estimator of Δ₂
+"""
+@inline function computeΔ₂(X, U, N)
+
+    Ndyadscomb = N * (N - 1) / 2
+    s̄₂ = 0.
+
+    # Fixing a combination i,j
+    @inbounds for i in 1:N, j in (i+1):N
+        (i - j) == 0 && return
+
         sdyad₂ = 0.
         Ncombs = binomial(N - 2, 2)
 
@@ -91,26 +133,21 @@ end
             (l - i) * (l - j) == 0 && continue
             (l - k) * (k - i) * (k - j) == 0 && continue
 
-            sdyad₁ += scombs(X, U, i, j, k, l)
-            sdyad₂ += scombsinefficient(X, U, i, j, k, l) 
+            sdyad₂ += scombscombinations(X, U, i, j, k, l) 
         end
 
-        s̄₁ += (sdyad₁ / Ncombs)^2
         s̄₂ += (sdyad₂ / Ncombs)^2
     
     end
 
     # Taking the average over dyads for both estimators
-    Δ₂₁ = s̄₁ / Ndyads
-    Δ₂₂ = s̄₂ / Ndyads 
-
-    return Δ₂₁, Δ₂₂
-
+    Δ₂ = s̄₂ / Ndyadscomb 
+    
+    return Δ₂
 end
 
-
 """ 
-Function that computes X\tilde or Y\tilde for OLS regression
+Function that computes X̃ or Ỹ for OLS regression
 """
 function variablesreg(X::Matrix, N::Int64)
     X̃ = zeros(N * (N-1) * (N-2) * (N-3))

@@ -25,7 +25,8 @@ function dgpolsdesign1(N, β₁)
 
     # drawing the FE for the explanatory variables likewise Jochmans (2016)
     Ai = rand(Beta(2, 2), (N, 1)) .- 0.5
-    Xij = @. - abs(Ai - Ai')
+    Aj = rand(Beta(2, 2), (N, 1)) .- 0.5
+    Xij = @. - abs(Ai - Aj')
     Xij[diagind(Xij)] .= 0.
 
     # drawing the uncorrelated FE for the regression
