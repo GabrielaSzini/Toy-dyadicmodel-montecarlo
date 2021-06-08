@@ -44,10 +44,10 @@ end
 
 end
 
-β₁ = 1
-N = 50
-sims = 1000
-design = 1
+β₁ = 0
+N = 10
+sims = 10000
+design = 2
 
 result = @time @showprogress pmap(1:sims) do sim
     simulation(N, β₁, design)
