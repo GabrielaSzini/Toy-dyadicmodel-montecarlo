@@ -163,3 +163,9 @@ docs/site/
 # committed for packages, but should be committed for applications that require a static
 # environment.
 Manifest.toml
+
+# Own folder
+
+results
+previous-results
+.DS_Store
